@@ -2,7 +2,6 @@ FROM golang:1.18-alpine AS builder
 
 LABEL stage=gobuilder
 
-ENV CGO_ENABLED 0
 ENV GOPROXY https://goproxy.cn,direct
 RUN sed -i 's/dl-cdn.alpinelinux.org/mirrors.aliyun.com/g' /etc/apk/repositories
 
@@ -14,10 +13,10 @@ ADD go.mod .
 ADD go.sum .
 RUN go mod download
 COPY . .
-RUN go build -ldflags="-s -w" -o /app .
+RUN CGO_ENABLED=0 go build -ldflags="-s -w" -o /app .
 
 
-FROM golang:1.18-alpine
+FROM scratch
 
 COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/ca-certificates.crt
 COPY --from=builder /usr/share/zoneinfo/Asia/Shanghai /usr/share/zoneinfo/Asia/Shanghai
